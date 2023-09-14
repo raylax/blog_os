@@ -17,3 +17,9 @@ cargo bootimage
 ```sh
 cargo run
 ```
+
+## test
+
+```sh
+cargo test
+```
