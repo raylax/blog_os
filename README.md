@@ -1,4 +1,4 @@
-# Blog OS
+# Write Operating System in Rust
 
 ## build binary
 
