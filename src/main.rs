@@ -17,9 +17,12 @@ pub extern "C" fn _start() -> ! {
 }
 
 pub fn main() {
-    for i in 1..=30 {
-        println!("L{}", i);
+    blog_os::init();
+    fn stack_overflow() {
+        stack_overflow();
     }
+
+    stack_overflow();
 }
 
 #[cfg(not(test))]

@@ -3,9 +3,17 @@
 #![feature(custom_test_frameworks)]
 #![test_runner(crate::test_runner)]
 #![reexport_test_harness_main = "test_main"]
+#![feature(abi_x86_interrupt)]
 
+pub mod gdt;
+pub mod interrupts;
 pub mod serial;
 pub mod vga_buffer;
+
+pub fn init() {
+    gdt::init();
+    interrupts::init_idt();
+}
 
 #[cfg(test)]
 #[panic_handler]
@@ -24,6 +32,7 @@ pub fn handle_test_panic(info: &core::panic::PanicInfo) -> ! {
 #[cfg(test)]
 #[no_mangle]
 pub extern "C" fn _start() -> ! {
+    init();
     test_main();
     #[allow(clippy::empty_loop)]
     loop {}
