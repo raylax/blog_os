@@ -96,6 +96,16 @@ impl Writer {
         }
     }
 
+    pub fn backspace(&mut self) {
+        if self.x > 0 {
+            self.x -= 1;
+            self.buffer.chars[self.y][self.x].write(ScreenChar {
+                character: b' ',
+                color_code: self.color_code,
+            });
+        }
+    }
+
     /// 换行
     pub fn new_line(&mut self) {
         self.x = 0;
@@ -151,11 +161,16 @@ macro_rules! print {
 
 #[macro_export]
 macro_rules! println {
-    () => ($crate::print("\n"));
+    () => ($crate::print!("\n"));
     ($($arg:tt)*) => ($crate::print!("{}\n", format_args!($($arg)*)));
 }
 
 #[doc(hidden)]
 pub fn _print(args: fmt::Arguments) {
-    WRITER.lock().write_fmt(args).unwrap();
+    use x86_64::instructions::interrupts;
+
+    // 写出时禁用中断
+    interrupts::without_interrupts(|| {
+        WRITER.lock().write_fmt(args).unwrap();
+    });
 }

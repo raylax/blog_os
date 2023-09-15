@@ -12,21 +12,19 @@ pub extern "C" fn _start() -> ! {
     main();
     #[cfg(test)]
     test_main();
-    #[allow(clippy::empty_loop)]
-    loop {}
+    blog_os::hlt_loop();
 }
 
 pub fn main() {
     blog_os::init();
     println!("Welcome BlogOS ~");
-    loop {}
 }
 
 #[cfg(not(test))]
 #[panic_handler]
 pub fn panic_handler(info: &core::panic::PanicInfo) -> ! {
     println!("{info}");
-    loop {}
+    blog_os::hlt_loop();
 }
 
 #[cfg(test)]

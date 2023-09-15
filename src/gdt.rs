@@ -22,7 +22,7 @@ lazy_static! {
         let mut tss = TaskStateSegment::new();
 
         // 设置双故障中断栈
-        // 犹豫x86架构中，栈是从高地址向低地址增长的，所以将结束地址设置为栈的起始地址
+        // 由于x86架构中，栈是从高地址向低地址增长的，所以将结束地址设置为栈的起始地址
         tss.interrupt_stack_table[DOUBLE_FAULT_IST_INDEX as usize] = {
             static mut STACK: [u8; STACK_SIZE] = [0; STACK_SIZE];
 

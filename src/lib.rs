@@ -7,12 +7,21 @@
 
 pub mod gdt;
 pub mod interrupts;
+pub mod keyborad;
 pub mod serial;
 pub mod vga_buffer;
 
 pub fn init() {
     gdt::init();
     interrupts::init_idt();
+    unsafe { interrupts::PICS.lock().initialize() }
+    x86_64::instructions::interrupts::enable(); // 中断使能
+}
+
+pub fn hlt_loop() -> ! {
+    loop {
+        x86_64::instructions::hlt();
+    }
 }
 
 #[cfg(test)]
@@ -25,7 +34,7 @@ pub fn handle_test_panic(info: &core::panic::PanicInfo) -> ! {
     serial_println!("[failed]\n");
     serial_println!("Error: {}\n", info);
     exit_qemu(QemuExitCode::Failed);
-    loop {}
+    hlt_loop();
 }
 
 /// 测试入口
@@ -35,7 +44,7 @@ pub extern "C" fn _start() -> ! {
     init();
     test_main();
     #[allow(clippy::empty_loop)]
-    loop {}
+    hlt_loop();
 }
 
 pub fn test_runner(tests: &[&dyn Testable]) {
