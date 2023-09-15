@@ -8,6 +8,7 @@
 pub mod gdt;
 pub mod interrupts;
 pub mod keyborad;
+pub mod memory;
 pub mod serial;
 pub mod vga_buffer;
 
@@ -37,10 +38,12 @@ pub fn handle_test_panic(info: &core::panic::PanicInfo) -> ! {
     hlt_loop();
 }
 
+#[cfg(test)]
+bootloader::entry_point!(test_kernel_main);
+
 /// 测试入口
 #[cfg(test)]
-#[no_mangle]
-pub extern "C" fn _start() -> ! {
+fn test_kernel_main(_boot_info: &'static bootloader::BootInfo) -> ! {
     init();
     test_main();
     #[allow(clippy::empty_loop)]

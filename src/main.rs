@@ -5,17 +5,21 @@
 #![reexport_test_harness_main = "test_main"]
 
 use blog_os::println;
+use bootloader::{entry_point, BootInfo};
+use x86_64::structures::paging::Translate;
+use x86_64::VirtAddr;
 
-#[no_mangle]
-pub extern "C" fn _start() -> ! {
+entry_point!(kernel_main);
+
+fn kernel_main(boot_info: &'static BootInfo) -> ! {
     #[cfg(not(test))]
-    main();
+    main(boot_info);
     #[cfg(test)]
     test_main();
     blog_os::hlt_loop();
 }
 
-pub fn main() {
+pub fn main(boot_info: &'static BootInfo) {
     blog_os::init();
     println!("Welcome BlogOS ~");
 }

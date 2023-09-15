@@ -6,6 +6,7 @@ use lazy_static::lazy_static;
 use pc_keyboard::DecodedKey;
 use pic8259::ChainedPics;
 use spin;
+use x86_64::structures::idt::PageFaultErrorCode;
 use x86_64::structures::idt::{InterruptDescriptorTable, InterruptStackFrame};
 
 lazy_static! {
@@ -13,6 +14,8 @@ lazy_static! {
         let mut idt = InterruptDescriptorTable::new();
         // 设置断点异常的中断处理函数
         idt.breakpoint.set_handler_fn(breakpoint_handler);
+        // 设置页内存错误的中断处理函数
+        idt.page_fault.set_handler_fn(page_fault_handler);
 
         // 设置双重故障异常的中断处理函数
         unsafe {
@@ -80,6 +83,20 @@ impl From<InterruptIndex> for usize {
     fn from(value: InterruptIndex) -> Self {
         value as usize
     }
+}
+
+/// 页内存错误中断处理器
+extern "x86-interrupt" fn page_fault_handler(
+    stack_frame: InterruptStackFrame,
+    error_code: PageFaultErrorCode,
+) {
+    use x86_64::registers::control::Cr2;
+    println!("EXCEPTION: PAGE FAULT");
+    // 从CR2寄存器中读取错误地址
+    println!("ADDRESS: {:?}", Cr2::read());
+    println!("CODE: {:?}", error_code);
+    println!("{:#?}", stack_frame);
+    crate::hlt_loop();
 }
 
 /// 时钟中断处理器
