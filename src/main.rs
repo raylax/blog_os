@@ -18,11 +18,8 @@ pub extern "C" fn _start() -> ! {
 
 pub fn main() {
     blog_os::init();
-    fn stack_overflow() {
-        stack_overflow();
-    }
-
-    stack_overflow();
+    println!("Welcome BlogOS ~");
+    loop {}
 }
 
 #[cfg(not(test))]
