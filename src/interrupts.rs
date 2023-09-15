@@ -1,8 +1,8 @@
 use crate::gdt;
 use crate::keyborad;
-use crate::vga_buffer;
 use crate::{print, println};
 use lazy_static::lazy_static;
+use pc_keyboard::DecodedKey;
 use pic8259::ChainedPics;
 use spin;
 use x86_64::structures::idt::{InterruptDescriptorTable, InterruptStackFrame};
@@ -93,15 +93,12 @@ extern "x86-interrupt" fn keyboard_interrupt_handler(_stack_frame: InterruptStac
     // PS2 port
     let mut port = Port::new(0x60);
     let sc: u8 = unsafe { port.read() };
-
-    match sc {
-        keyborad::SCANCODE_ENTER => println!(),
-        keyborad::SCANCODE_BACKSPACE => vga_buffer::WRITER.lock().backspace(),
-        _ => {
-            let k = crate::keyborad::scancode_to_ascii(sc);
-
-            if let Some(key) = k {
-                print!("{}", key);
+    let mut kb = keyborad::KEYBOARD.lock();
+    if let Ok(Some(key_event)) = kb.add_byte(sc) {
+        if let Some(key) = kb.process_keyevent(key_event) {
+            match key {
+                DecodedKey::Unicode(character) => print!("{}", character),
+                DecodedKey::RawKey(key) => print!("{:?}", key),
             }
         }
     }

@@ -7,6 +7,7 @@ use x86_64::VirtAddr;
 pub const DOUBLE_FAULT_IST_INDEX: u16 = 0;
 const STACK_SIZE: usize = 4096 * 5; // 20kib
 
+#[allow(clippy::upper_case_acronyms)]
 struct GDT {
     gdt: GlobalDescriptorTable,
     selectors: Selectors,
@@ -42,7 +43,7 @@ lazy_static! {
         // 添加TSS
         let tss_selector = gdt.add_entry(Descriptor::tss_segment(&TSS));
         GDT {
-            gdt: gdt,
+            gdt,
             selectors: Selectors {
                 code: code_selector,
                 tss: tss_selector,
