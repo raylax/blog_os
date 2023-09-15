@@ -1,5 +1,6 @@
 use crate::gdt;
 use crate::keyborad;
+use crate::vga_buffer;
 use crate::{print, println};
 use lazy_static::lazy_static;
 use pc_keyboard::DecodedKey;
@@ -86,7 +87,7 @@ extern "x86-interrupt" fn timer_interrupt_handler(_stack_frame: InterruptStackFr
     notify_end_of_interrupt(InterruptIndex::Timer);
 }
 
-/// 时钟中断处理器
+/// 键盘中断处理器
 extern "x86-interrupt" fn keyboard_interrupt_handler(_stack_frame: InterruptStackFrame) {
     use x86_64::instructions::port::Port;
 
@@ -94,11 +95,20 @@ extern "x86-interrupt" fn keyboard_interrupt_handler(_stack_frame: InterruptStac
     let mut port = Port::new(0x60);
     let sc: u8 = unsafe { port.read() };
     let mut kb = keyborad::KEYBOARD.lock();
+
     if let Ok(Some(key_event)) = kb.add_byte(sc) {
         if let Some(key) = kb.process_keyevent(key_event) {
             match key {
-                DecodedKey::Unicode(character) => print!("{}", character),
-                DecodedKey::RawKey(key) => print!("{:?}", key),
+                DecodedKey::Unicode(c) => match c {
+                    // 按下退格键
+                    '\u{8}' => vga_buffer::WRITER.lock().backspace(),
+                    _ => print!("{}", c),
+                },
+                DecodedKey::RawKey(key) => match key {
+                    // 按下回车键
+                    pc_keyboard::KeyCode::Enter => println!(),
+                    _ => print!("2{:?}", key),
+                },
             }
         }
     }
